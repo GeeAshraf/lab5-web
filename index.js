@@ -7,7 +7,7 @@ const tripRouter = require('./routes/tripRoutes.js');
 
 app.use(express.json());
 //app.use('/trips', TripsRouter);
-app.use('/trips', tripRoutee);
+app.use('/trips', tripRouter);
 
 module.exports = 
 {
