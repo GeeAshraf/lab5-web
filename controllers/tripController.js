@@ -1,3 +1,78 @@
+const {trips} = require('../models/tripmodel');
+const { db } = require('../db.js');
+
+// Create a new trip
+const createTrip = (req, res) => {
+  const {
+    destinationName,
+    location,
+    continent,
+    language,
+    description,
+    flightCost = 0,
+    accommodationCost = 0,
+    mealCost = 0,
+    visaCost = 0,
+    transportationCost = 0,
+    currencyCode = 'USD', // optional default
+  } = req.body;
+
+  // Validate required fields
+  if (!destinationName || !location || !continent || !language || !description) {
+    return res.status(400).json({
+      message:
+        'Missing required fields: destinationName, location, continent, language, description',
+    });
+  }
+
+  const query = `
+  INSERT INTO Trip (
+    destinationName,
+    location,
+    continent,
+    language,
+    description,
+    flightCost,
+    accommodationCost,
+    mealCost,
+    visaCost,
+    transportationCost,
+    currencyCode
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+const values = [
+    destinationName,
+    location,
+    continent,
+    language,
+    description,
+    flightCost,
+    accommodationCost,
+    mealCost,
+    visaCost,
+    transportationCost,
+    currencyCode,
+  ];
+
+  db.run(query, values, function (err) {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({
+        message: 'Database error',
+        error: err.message,
+      });
+    }
+
+    return res.status(201).json({
+      message: 'Trip created successfully',
+      tripId: this.lastID,
+    });
+  });
+};
+
+module.exports = { createTrip };
+
 const {
     trips, getTripWithDailycost
 } = require('../models/Trip');
