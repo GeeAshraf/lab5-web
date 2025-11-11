@@ -1,3 +1,4 @@
+// Simple mock trip data
 const trips = [
     {
       id: 1,
@@ -99,20 +100,5 @@ const trips = [
     },
   ];
   
-  // Function to calculate daily cost for each trip
-  function getTripsWithDailyCost() {
-    for (let i = 0; i < trips.length; i++) {
-      const t = trips[i];
-      t.dailyCost =
-        t.flightCost +
-        t.accommodationCost +
-        t.mealCost +
-        t.visaCost +
-        t.transportationCost;
-    }
-    return trips;
-  }
+  module.exports = { trips };
   
-  module.exports = { trips, getTripsWithDailyCost };
-  
-
