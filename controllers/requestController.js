@@ -6,6 +6,8 @@ const RetrieveAllRequests = (req, res) => {
 
     res.cookie('RequestRetrieved', `AllRequests`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -27,8 +29,10 @@ const RetrieveRequestById = (req, res) => {
     const params = [id];
 
     
-    res.cookie('TripRetrieved', `Trip ID ${id}`, {
+    res.cookie('RequestRetrieved', `Request ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -65,6 +69,8 @@ const CreateRequest = (req,res) => {
 
     res.cookie('RequestCreated', `Request ID ${this.lastID}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -85,11 +91,13 @@ const CreateRequest = (req,res) => {
 
 const DeleteRequestById = (req,res) => {
     const id = Number(req.params.id);
-    const query = `DELETE FROM Request WHERE id = '?'`;
+    const query = `DELETE FROM Request WHERE id = ?`;
     const params = id;
 
-    res.cookie('TripDeleted', `Request ID ${id}`, {
+    res.cookie('RequestDeleted', `Request ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -118,13 +126,15 @@ const UpdateRequestById = (req,res) => {
     const{title, location, category, priority, description, status}=req.body;
 
     const query = `UPDATE Request SET 
-    title='?', location='?', category='?', priority='?', 
-    description='?', status='?', WHERE id = '?'`;
+    title= ? , location= ? , category= ? , priority= ? , 
+    description= ? , status= ? , WHERE id = ? `;
 
     const params = [title, location, category, priority, description, status,id];
 
     res.cookie('RequestDeleted', `Request ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
     

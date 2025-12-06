@@ -6,6 +6,8 @@ const RetrieveAllUsers = (req, res) => {
 
     res.cookie('UsersRetreived', `User ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -23,11 +25,13 @@ const RetrieveAllUsers = (req, res) => {
 
 const RetrieveUserById = (req, res) => {
     const id = Number(req.params.id);
-    const query = `SELECT * FROM User WHERE id = '?'`;
+    const query = `SELECT * FROM User WHERE id = ?`;
     const params = [id];
 
     res.cookie('SpecificUserRetreived', `User ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -62,6 +66,8 @@ const CreateUser = (req, res) => {
 
     res.cookie('UserCreated', `User ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -87,8 +93,11 @@ const DeleteUserById = (req, res) => {
 
     res.cookie('UserDeleted', `User ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
+        
 
     db.run(query, params, function (err) {
         if (err) {
@@ -114,12 +123,14 @@ const UpdateUserById = (req, res) => {
     const id = Number(req.params.id);
     const { name, email, password, role } = req.body;
     const query = `UPDATE User SET 
-    name='?', email='?', password='?', role='?' WHERE id = '?'`;
+    name= ? , email= ? , password=?, role= ?, WHERE id = ? `;
 
     const params = [name, email, password, role, id];
 
     res.cookie('UserUpdated', `User ID ${id}`, {
         httpOnly: true,
+        sameSite: 'Strict',
+        secure: false,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 

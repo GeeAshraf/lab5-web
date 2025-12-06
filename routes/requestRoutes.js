@@ -7,7 +7,10 @@ const {
     RetrieveRequestById
 } = require('../controller/requestController');
 
+const protect = require('../middleware/protectRoute');
+
 const RequestRouter = express.Router();
+RequestRouter.use(protect);
 
 RequestRouter.route('/')
 .get(RetrieveAllTrips)
