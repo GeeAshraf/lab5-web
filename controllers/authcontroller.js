@@ -1,125 +1,101 @@
-const jwt = require('jsonwebtoken');
+const { db } = require('../models/db.js');
 const bcrypt = require('bcryptjs');
-const { db } = require('../db.js');
+const jwt = require('jsonwebtoken');
 
-const signToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-};
+const signToken = (userId, role) => {
+    return jwt.sign({  userId, role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+      
+}
 
-// --- SIGN UP ---
-const signUp = (req, res) => {
-  const { email, password } = req.body;
-  const role = 'user'; // default role
+const signup = (req, res) => {
+    const name = req.body.name;
+    const email = req.body.email;
+    const password = req.body.password;
+    const role = req.body.role || 'user'; //user(student, staff), admin, technician
 
-  if (!email || !password) {
-    return res.status(400).send('Please provide email and password.');
-  }
-
-  bcrypt.hash(password, 10, (err, hashedPassword) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Error hashing password.');
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: "Missing required fields" });
     }
 
-
-    const query = `
-      INSERT INTO USER (EMAIL, ROLE, PASSWORD)
-      VALUES (?, ?, ?)
-    `;
-
-    db.run(query, [email, role, hashedPassword], function (err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint')) {
-          return res.status(400).send('Email already exists.');
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: "Error hashing password" });
         }
-        console.error(err);
-        return res.status(500).send('Database error.');
-      }
 
-      // Use "this.lastID" safely (note: must be a function callback, not arrow function)
-      const token = signToken(this.lastID, role);
-      return res.status(201).json({
-        status: 'success',
-        message: 'Registration successful',
-        token,
-      });
+    const query = `INSERT INTO User (name, email, password, role) VALUES ( ?, ? , ? , ?')`;
+    const params = [name, email, hashedPassword, role];
+
+    
+    db.run(query, params, function(err) {
+        if (err) {
+            console.log(err);
+            if (err.message.includes("UNIQUE constraint failed")) {
+                return res.status(400).json({ error: "Email already exists" });
+            }
+            return res.status(500).json({ error: "Error creating user" });
+        }
+
+        res.cookie('SignedUp', `Trip ID ${this.lastID}`, {
+        httpOnly: true,
+        maxAge: 15 * 60 * 1000 // 15 minutes
     });
-  });
+        return res.status(201).json({ message: "User created successfully" });
+        });
+    });
 };
 
-// --- LOGIN ---
 const login = (req, res) => {
-  const { email, password } = req.body;
+    const email = req.body.email;
+    const password = req.body.password;
 
-  if (!email || !password) {
-    return res.status(400).send('Please provide email and password.');
-  }
-
-
-  const query = `SELECT * FROM USER WHERE EMAIL = ?`;
-
-  db.get(query, [email], (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Database error.');
+    if (!email || !password) {
+        return res.status(400).json({ error: "Missing required fields" });
     }
 
-    if (!row) {
-      return res.status(401).send('Invalid credentials.');
-    }
+    const query = `SELECT * FROM User WHERE email = ?`;
+    const params =[email];
 
-    bcrypt.compare(password, row.PASSWORD, (err, isMatch) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Error verifying password.');
-      }
 
-      if (!isMatch) {
-        return res.status(401).send('Invalid credentials.');
-      }
+    db.get(query, params, (err, row) => {
+        
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ error: "Error retrieving user" });
+        }
+        if (!row) {
+            return res.status(400).json({ error: "Invalid email or password" });
+        }
 
-      const token = signToken(row.ID, row.ROLE);
-      return res.status(200).json({
-        message: 'Login successful',
-        user: {
-          id: row.ID,
-          email: row.EMAIL,
-          role: row.ROLE,
-        },
-        token,
-      });
+        bcrypt.compare(password, row.password, (err, result) => {
+           
+            if (err) {
+                console.log(err);
+                return res.status(500).json({ error: "Error comparing passwords" });
+            }
+            if (!result) {
+                return res.status(400).json({ error: "Invalid email or password" });
+            }
+
+            const token = signToken(row.id, row.role);
+
+            res.cookie('LoggedIn', `Trip ID ${id}`, {
+                httpOnly: true,
+                maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+          
+            return res.status(200).json({
+                message: "Login successful",
+                data: {id: row.id, name: row.name, email: row.email, role: row.role},token,
+            });
+        });
     });
-  });
 };
 
-// --- VERIFY TOKEN MIDDLEWARE ---
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+module.exports = { signup, login }; 
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(403).send('Access denied: Token missing or malformed');
-  }
+    
+    
 
-  const token = authHeader.split(' ')[1];
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).send('Invalid or expired token');
-    }
-
-    req.user = { id: decoded.id, role: decoded.role };
-    next();
-  });
-};
-
-// --- VERIFY ADMIN ---
-const verifyAdmin = (req, res, next) => {
-  verifyToken(req, res, () => {
-    if (req.user.role !== 'admin') {
-      return res.status(403).send('Access denied: Admins only');
-    }
-    next();
-  });
-};
-
-module.exports = { signUp, login, verifyToken, verifyAdmin };
+        

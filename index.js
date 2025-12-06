@@ -1,24 +1,19 @@
 const express = require('express');
-const cors = require('cors');
+const app = express();
 const dotenv = require('dotenv');
-const tripRouter = require('./routes/tripRoutes.js');
-const userRouter = require('./routes/userRoutes.js');
-const authRouter = require('./routes/authRoutes.js');
-
-// Load environment variables from .env file
 dotenv.config();
 
-// Create an instance of the Express application
-const app = express();
+const RequestRouter = require('./routes/RequestRouter');
+const UserRouter = require('./routes/UserRouter');
+const AuthRouter = require('./routes/AuthRouter.js');
 
-// Use middleware to parse JSON data from request bodies
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.use(express.json());
 
+app.use('/requests', RequestRouter);
+app.use('/users', UserRouter);
+app.use('/auth', AuthRouter);
 
-app.use('/api/v1/trips', tripRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/auth', authRouter);
 
-module.exports = {
-  app,
-};
+module.exports = {app};

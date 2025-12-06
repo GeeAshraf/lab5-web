@@ -1,33 +1,31 @@
 const sqlite = require('sqlite3');
-const db = new sqlite.Database('travel.db');
+const db = new sqlite.Database('UniTrack.db');
 
-// New Trip Table
-const createTripTable = `CREATE TABLE IF NOT EXISTS TRIP (
-  ID INTEGER PRIMARY KEY AUTOINCREMENT,
-  DESTINATIONNAME TEXT NOT NULL,
-  LOCATION TEXT NOT NULL,
-  CONTINENT TEXT NOT NULL,
-  LANGUAGE TEXT NOT NULL,
-  DESCRIPTION TEXT NOT NULL,
-  FLIGHTCOST REAL DEFAULT 0,
-  ACCOMMODATIONCOST REAL DEFAULT 0,
-  MEALCOST REAL DEFAULT 0,
-  VISACOST REAL DEFAULT 0,
-  TRANSPORTATIONCOST REAL DEFAULT 0,
-  CURRENCYCODE TEXT DEFAULT 'N/A'
+const CreateTripTable = `CREATE TABLE IF NOT EXISTS Request (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    location TEXT NOT NULL,
+    category TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    technician_id INTEGER DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (technician_id) REFERENCES User(id)  
+
 )`;
 
-// New User Table
-const createUserTable = `CREATE TABLE IF NOT EXISTS USER (
-  ID INTEGER PRIMARY KEY AUTOINCREMENT,
-  EMAIL TEXT UNIQUE NOT NULL,
-  ROLE TEXT NOT NULL,
-  PASSWORD TEXT NOT NULL
+const CreateUserTable = `CREATE TABLE IF NOT EXISTS User (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user'
 )`;
 
-
-module.exports = {
-  db,
-  createTripTable,
-  createUserTable,
+module.exports = { 
+    db, 
+    CreateRequestTable,
+    CreateUserTable
 };
